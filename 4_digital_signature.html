@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Signature</title>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --panel-bg: #ffffff;
+            --text-color: #2c3e50;
+            --accent-color: #7c3aed;
+            --highlight: #6d28d9;
+            --active: #ffb300;
+            --border-color: #e2e8f0;
+            --panel-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --input-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--panel-shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 300px;
+            box-sizing: border-box;
+        }
+
+        .panel-title {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .sub-section {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            flex: 1;
+            min-width: 280px;
+            box-sizing: border-box;
+        }
+
+        .sub-section-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-color);
+            margin: 0 0 12px 0;
+        }
+
+        .instructions {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin: 0 0 15px 0;
+        }
+
+        .box-label {
+            font-size: 0.95rem;
+            color: #64748b;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--input-bg);
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        select {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 0.95rem;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            background-color: var(--panel-bg);
+            color: var(--text-color);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .interactive-textbox {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-family: monospace;
+            font-size: 1.1rem;
+            resize: vertical;
+            box-sizing: border-box;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .interactive-textbox:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .interactive-textbox[readonly] {
+            background-color: var(--input-bg);
+            color: #64748b;
+            cursor: not-allowed;
+        }
+
+        .action-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: background-color 0.2s, transform 0.1s;
+            touch-action: manipulation;
+        }
+
+        .action-btn:hover {
+            background-color: var(--highlight);
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        .value-display {
+            font-family: monospace;
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            min-height: 24px;
+            margin-bottom: 8px;
+        }
+
+        .grid-container {
+            display: inline-grid;
+            gap: 4px;
+            background-color: var(--input-bg);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-top: 8px;
+        }
+
+        .grid-square {
+            width: 24px;
+            height: 24px;
+            background-color: #cbd5e1;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-family: monospace;
+            color: #64748b;
+            user-select: none;
+        }
+
+        .grid-square.active {
+            background-color: var(--accent-color);
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 0 8px rgba(124, 58, 237, 0.4);
+        }
+
+        .math-box {
+            background-color: var(--input-bg);
+            border-left: 4px solid var(--accent-color);
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.95rem;
+        }
+
+        .reminder {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .status-banner {
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        .status-success {
+            background-color: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        .status-fail {
+            background-color: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .instructor-footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.95rem;
+            font-weight: normal;
+            width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            .panel,
+            .sub-section {
+                width: 100%;
+                min-width: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Mission: Decrypt! A Hands-On Math Adventure</h1>
+<h1>Digital Signature</h1>
+
+<div class="main-wrapper">
+
+    <div class="panel">
+        <div class="panel-title">System Configuration & Asymmetric Keys</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Pair ID</th>
+                    <th>Public Key $(e, n)$</th>
+                    <th>Private Key $(d, n)$</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Alice</strong></td>
+                    <td>1</td>
+                    <td>$(7, 143)$</td>
+                    <td>$(103, 143)$</td>
+                </tr>
+                <tr>
+                    <td><strong>Bob</strong></td>
+                    <td>2</td>
+                    <td>$(5, 323)$</td>
+                    <td>$(173, 323)$</td>
+                </tr>
+                <tr>
+                    <td><strong>Charlie</strong></td>
+                    <td>3</td>
+                    <td>$(3, 667)$</td>
+                    <td>$(411, 667)$</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="controls-row" style="margin-top: 15px;">
+            <label for="hash-space" class="box-label">Total Hash Values ($N$ Space):</label>
+            <select id="hash-space" onchange="resetProcess()">
+                <option value="4">4 (2x2 Grid)</option>
+                <option value="36" selected>36 (6x6 Grid)</option>
+                <option value="100">100 (10x10 Grid)</option>
+                <option value="144">144 (12x12 Grid)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <div class="panel-title">Message & Hashing (Sender)</div>
+            <p class="instructions">Type your message below and execute the hash function.</p>
+            <textarea id="message-input" class="interactive-textbox" oninput="syncReceiverDocument()" placeholder="Type message here...">Hello, this is a secure digital signature demonstration.</textarea>
+            
+            <button type="button" class="action-btn" onclick="generateHash()">Hash</button>
+
+            <p class="box-label" style="margin-top: 15px;">Calculated Hash Value ($h$): <span id="hash-value-display" class="value-display" style="display: inline;">-</span></p>
+            <div id="hash-grid" class="grid-container"></div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Sign Message (Encryption)</div>
+            <div class="controls-row">
+                <label for="signer-select" class="box-label">Sign As:</label>
+                <select id="signer-select" onchange="updateSignerReminder()">
+                    <option value="alice">Alice (Pair 1)</option>
+                    <option value="bob">Bob (Pair 2)</option>
+                    <option value="charlie">Charlie (Pair 3)</option>
+                </select>
+            </div>
+            
+            <span id="signer-reminder" class="reminder">Remind: This will be signed using Alice's private key.</span>
+            
+            <button type="button" class="action-btn" onclick="createSignature()">Generate Digital Signature</button>
+
+            <div class="math-box">
+                Signature calculation formula:
+                $$s = h^d \pmod n$$
+            </div>
+            <p class="box-label">Generated Signature ($s$):</p>
+            <div id="signature-display" class="value-display">-</div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">Verification Process (Receiver)</div>
+        <p class="instructions">The receiver gets the plaintext document alongside the signature block. To verify authenticity, the receiver independently hashes the document and decrypts the signature to check if they point to the identical grid state.</p>
+        
+        <div class="container">
+            <div class="sub-section">
+                <h3 class="sub-section-title">Part A: Process Received Message</h3>
+                <p class="instructions">The receiver applies the identical public hash function to the incoming text profile:</p>
+                <textarea id="receiver-message-view" class="interactive-textbox" readonly placeholder="Awaiting sender interaction..."></textarea>
+                
+                <p class="box-label">Receiver Derived Hash ($h_{\text{doc}}$): <span id="receiver-hash-display" class="value-display" style="display: inline;">-</span></p>
+                <div id="receiver-hash-grid" class="grid-container"></div>
+            </div>
+
+            <div class="sub-section">
+                <h3 class="sub-section-title">Part B: Process Encrypted Signature</h3>
+                <div class="controls-row">
+                    <label for="verifier-select" class="box-label">Verify with Public Key of:</label>
+                    <select id="verifier-select">
+                        <option value="alice">Alice (Pair 1)</option>
+                        <option value="bob">Bob (Pair 2)</option>
+                        <option value="charlie">Charlie (Pair 3)</option>
+                    </select>
+                </div>
+                
+                <button type="button" class="action-btn" onclick="verifySignature()">Verify Authenticity</button>
+
+                <div class="math-box">
+                    Decryption formula:
+                    $$h_{\text{decrypted}} = s^e \pmod n$$
+                </div>
+                <p class="box-label">Decrypted Signature Value ($h_{\text{decrypted}}$):</p>
+                <div id="decrypted-hash-display" class="value-display">-</div>
+                <div id="verify-grid" class="grid-container"></div>
+            </div>
+        </div>
+
+        <div id="verification-status" class="status-banner" style="display: none;"></div>
+    </div>
+
+    <div class="instructor-footer">Jing ZHANG, Department of Mathematics, HKBU</div>
+</div>
+
+<script>
+    // Key Database Setup
+    const keyPairs = {
+        alice: { e: 7, d: 103, n: 143 },
+        bob: { e: 5, d: 173, n: 323 },
+        charlie: { e: 3, d: 411, n: 667 }
+    };
+
+    let currentHash = null;
+    let currentSignature = null;
+
+    // Helper functions for modular exponentiation to manage large numbers properly
+    function powerMod(base, exp, mod) {
+        if (mod === 1) return 0;
+        let result = 1;
+        base = base % mod;
+        while (exp > 0) {
+            if (exp % 2 === 1) {
+                result = (result * base) % mod;
+            }
+            exp = Math.floor(exp / 2);
+            base = (base * base) % mod;
+        }
+        return result;
+    }
+
+    // Requests MathJax to update dynamic strings containing LaTeX
+    function triggerMathRefresh() {
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            window.MathJax.typesetPromise();
+        }
+    }
+
+    // Keep receiver textarea perfectly matching sender input
+    function syncReceiverDocument() {
+        document.getElementById('receiver-message-view').value = document.getElementById('message-input').value;
+    }
+
+    // Dynamic UI Updates
+    function updateSignerReminder() {
+        const signer = document.getElementById('signer-select').value;
+        const name = signer.charAt(0).toUpperCase() + signer.slice(1);
+        document.getElementById('signer-reminder').textContent = `Remind: This will be signed using ${name}'s private key.`;
+    }
+
+    function renderGrid(containerId, activeValue = null) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        
+        const totalSquares = parseInt(document.getElementById('hash-space').value);
+        const dimension = Math.sqrt(totalSquares);
+        
+        container.style.gridTemplateColumns = `repeat(${dimension}, 24px)`;
+        
+        for (let i = 0; i < totalSquares; i++) {
+            const square = document.createElement('div');
+            square.className = 'grid-square';
+            square.textContent = i;
+            if (activeValue !== null && i === activeValue) {
+                square.className = 'grid-square active';
+            }
+            container.appendChild(square);
+        }
+    }
+
+    // Reset workflow state if properties shift
+    function resetProcess() {
+        currentHash = null;
+        currentSignature = null;
+        document.getElementById('hash-value-display').textContent = '-';
+        document.getElementById('signature-display').textContent = '-';
+        document.getElementById('receiver-hash-display').textContent = '-';
+        document.getElementById('decrypted-hash-display').textContent = '-';
+        document.getElementById('verification-status').style.display = 'none';
+        
+        syncReceiverDocument();
+        renderGrid('hash-grid');
+        renderGrid('receiver-hash-grid');
+        renderGrid('verify-grid');
+    }
+
+    // Hashing Mechanics
+    function generateHash() {
+        const text = document.getElementById('message-input').value;
+        const totalSpace = parseInt(document.getElementById('hash-space').value);
+        
+        let hash = 0;
+        for (let i = 0; i < text.length; i++) {
+            hash = (hash * 31 + text.charCodeAt(i)) % totalSpace;
+        }
+        
+        currentHash = hash;
+        
+        // Update Section 2 (Sender)
+        document.getElementById('hash-value-display').textContent = currentHash;
+        renderGrid('hash-grid', currentHash);
+        
+        // Update Section 4 Part A (Receiver Document Hash automatically mimics this because texts match)
+        document.getElementById('receiver-hash-display').textContent = currentHash;
+        renderGrid('receiver-hash-grid', currentHash);
+        
+        // Clear downstream states to maintain logical flow consistency
+        currentSignature = null;
+        document.getElementById('signature-display').textContent = '-';
+        document.getElementById('decrypted-hash-display').textContent = '-';
+        document.getElementById('verification-status').style.display = 'none';
+        renderGrid('verify-grid');
+    }
+
+    // Signing / Encryption mechanics
+    function createSignature() {
+        if (currentHash === null) {
+            alert("Please calculate the text Hash value first!");
+            return;
+        }
+        
+        const signerKey = document.getElementById('signer-select').value;
+        const keys = keyPairs[signerKey];
+        
+        currentSignature = powerMod(currentHash, keys.d, keys.n);
+        
+        document.getElementById('signature-display').innerHTML = 
+            `$${currentSignature}$ &nbsp;(Calculated as: $${currentHash}^{${keys.d}} \\pmod{${keys.n}}$)`;
+        
+        triggerMathRefresh();
+    }
+
+    // Decryption / Verification mechanics
+    function verifySignature() {
+        if (currentSignature === null) {
+            alert("No signature generated to verify yet!");
+            return;
+        }
+        if (currentHash === null) {
+            alert("Please calculate the document hash first!");
+            return;
+        }
+
+        const verifierSelection = document.getElementById('verifier-select').value;
+        const keys = keyPairs[verifierSelection];
+        const statusBanner = document.getElementById('verification-status');
+        
+        // h_decrypted = s^e mod n
+        const decryptedHash = powerMod(currentSignature, keys.e, keys.n);
+        
+        document.getElementById('decrypted-hash-display').innerHTML = 
+            `$${decryptedHash}$ &nbsp;(Calculated as: $${currentSignature}^{${keys.e}} \\pmod{${keys.n}}$)`;
+        
+        renderGrid('verify-grid', decryptedHash);
+        triggerMathRefresh();
+        
+        statusBanner.style.display = 'block';
+        
+        // Explicitly check if the independent numbers match up
+        if (decryptedHash === currentHash) {
+            statusBanner.className = "status-banner status-success";
+            statusBanner.innerHTML = `✔ Verification SUCCESSFUL! <br> 
+            The independently computed document hash ($h_{\\text{doc}} = ${currentHash}$) matches the decrypted signature value ($h_{\\text{decrypted}} = ${decryptedHash}$). <br>
+            <strong>Result:</strong> Both highlighted grid matrices line up perfectly. This proves the file context was un-altered and genuinely authored by ${verifierSelection.toUpperCase()}.`;
+        } else {
+            statusBanner.className = "status-banner status-fail";
+            statusBanner.innerHTML = `✘ Verification FAILED! <br> 
+            The independently computed document hash ($h_{\\text{doc}} = ${currentHash}$) does NOT match the decrypted signature value ($h_{\\text{decrypted}} = ${decryptedHash}$). <br>
+            <strong>Result:</strong> Grid configurations do not align. The signature decryption used an incorrect public key, or the identity assertion is counterfeit!`;
+        }
+        triggerMathRefresh();
+    }
+
+    window.onload = function() {
+        resetProcess();
+        updateSignerReminder();
+    }
+</script>
+
+</body>
+</html>

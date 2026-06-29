@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegraph Simulator</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --panel-bg: #ffffff;
+            --text-color: #2c3e50;
+            --accent-color: #2e7d32; /* Rich Emerald Green */
+            --highlight: #4caf50;    /* Bright Green */
+            --active: #ffb300;       /* Warning Alert Amber */
+            --border-color: #e2e8f0;  /* Soft light borders */
+            --panel-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center horizontally */
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.8rem;
+        }
+
+        /* Wraps container and footer to keep everything stable and aligned */
+        .main-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            flex-wrap: wrap; /* Stacks nicely on smaller screens */
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--panel-shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 300px;
+            height: 530px; /* Locked fixed height for all panels on desktop */
+            box-sizing: border-box;
+        }
+
+        .panel-title {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        /* LEFT PANEL: Morse Code Reference Grid */
+        .reference-grid {
+            display: grid;
+            /* 3 Columns, 12 Rows, Auto-flow column for top-to-bottom ordering */
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(12, 1fr); /* Fits height of parent perfectly */
+            grid-auto-flow: column;
+            gap: 6px 12px;
+            overflow: hidden; /* No scrollbars, perfectly sized */
+            font-family: monospace;
+            font-size: 0.95rem;
+            height: 100%;
+        }
+
+        .reference-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        /* CENTER PANEL: Telegraph Input */
+        .panel.center {
+            justify-content: flex-start;
+        }
+
+        .telegraph-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        /* Wrapper tightly hugs the image for consistent percentage positioning */
+        .telegraph-wrapper {
+            position: relative;
+            display: block;
+            width: 100%;
+            max-width: 320px; /* Keeps image compact to fit well in the 530px panel */
+            margin: 0 auto;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .telegraph-image {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            user-select: none;
+            -webkit-user-drag: none;
+            pointer-events: none; /* Prevents image highlighting */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Invisible clickable hitbox positioned securely over the telegraph knob */
+        #knob-hitbox {
+            position: absolute;
+            left: 14%;
+            top: 25%;
+            width: 18%;
+            height: 20%;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            transition: background-color 0.1s ease;
+        }
+
+        #knob-hitbox:active {
+            background-color: rgba(255, 255, 255, 0.2); /* Soft active accent overlay */
+        }
+
+        .instructions {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        .current-signal-box {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            min-height: 40px;
+            font-size: 1.8rem;
+            letter-spacing: 5px;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* RIGHT PANEL: Result area */
+        #decoded-output {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 5px;
+            flex: 1;
+            font-family: monospace;
+            font-size: 1.5rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-y: auto;
+            line-height: 1.5;
+            color: var(--text-color);
+        }
+
+        .clear-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: background-color 0.2s;
+        }
+
+        .clear-btn:hover {
+            background-color: var(--highlight);
+        }
+
+        /* Audio Indicator */
+        #status-indicator {
+            width: 24px;
+            height: 24px;
+            background-color: #cbd5e1;
+            border-radius: 50%;
+            margin: 0 auto 15px auto;
+            transition: background-color 0.1s, box-shadow 0.1s;
+        }
+        #status-indicator.active {
+            background-color: var(--active);
+            box-shadow: 0 0 10px var(--active);
+        }
+
+        /* Centered signature footer below the panels */
+        .instructor-footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.95rem;
+            font-weight: normal;
+            width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            .panel {
+                width: 100%;
+                height: auto; /* Allow flexible height when columns stack vertically */
+                min-height: 450px;
+            }
+            .reference-grid {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(18, auto);
+                height: auto;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .reference-grid {
+                grid-template-columns: repeat(1, 1fr);
+                grid-template-rows: repeat(36, auto);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Mission: Decrypt! A Hands-On Math Adventure</h1>
+    <h1>Telegraph Simulator</h1>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <!-- LEFT PANEL -->
+            <div class="panel left">
+                <div class="panel-title">Morse Code Reference</div>
+                <div class="reference-grid" id="reference-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- CENTER PANEL -->
+            <div class="panel center">
+                <div class="panel-title">Telegraph Input</div>
+                <div id="status-indicator"></div>
+
+                <div class="telegraph-container">
+                    <div class="telegraph-wrapper">
+                        <!-- Image elements configured to prevent touch/click movement -->
+                        <img src="img_Telegraph.png" alt="Telegraph Key" class="telegraph-image">
+                        <!-- The touch-calibrated interactive knob area -->
+                        <div id="knob-hitbox" tabindex="0"></div>
+                    </div>
+                </div>
+                <p class="instructions">Tap the knob on the telegraph or press the <b>[SPACEBAR]</b></p>
+
+                <div class="current-signal-box" id="current-signal"></div>
+            </div>
+
+            <!-- RIGHT PANEL -->
+            <div class="panel right">
+                <div class="panel-title">Message Output</div>
+                <div id="decoded-output"></div>
+                <button class="clear-btn" onclick="clearOutput()">Clear Transmission</button>
+            </div>
+        </div>
+
+        <!-- Stable centered signature outside of the panel columns -->
+        <div class="instructor-footer">Jing ZHANG, Department of Mathematics, HKBU</div>
+    </div>
+
+    <script>
+        // Morse Code Dictionary
+        const morseDict = {
+            ".-": "A", "-...": "B", "-.-.": "C", "-..": "D", ".": "E",
+            "..-.": "F", "--.": "G", "....": "H", "..": "I", ".---": "J",
+            "-.-": "K", ".-..": "L", "--": "M", "-.": "N", "---": "O",
+            ".--.": "P", "--.-": "Q", ".-.": "R", "...": "S", "-": "T",
+            "..-": "U", "...-": "V", ".--": "W", "-..-": "X", "-.--": "Y", "--..": "Z",
+            ".----": "1", "..---": "2", "...--": "3", "....-": "4", ".....": "5",
+            "-....": "6", "--...": "7", "---..": "8", "----.": "9", "-----": "0"
+        };
+
+        // Populate Left Panel Reference Grid
+        const grid = document.getElementById('reference-grid');
+        for (const [code, letter] of Object.entries(morseDict)) {
+            const div = document.createElement('div');
+            div.className = 'reference-item';
+            div.innerHTML = `<span><b>${letter}</b></span> <span>${code}</span>`;
+            grid.appendChild(div);
+        }
+
+        // Timing Thresholds (in milliseconds)
+        const DOT_DASH_THRESHOLD = 200; // Under 200ms is a dot, over is a dash
+        const LETTER_GAP_THRESHOLD = 600; // Pause to finalize a letter
+        const WORD_GAP_THRESHOLD = 1400; // Pause to insert a space
+
+        // State Variables
+        let isPressed = false;
+        let pressStartTime = 0;
+        let releaseTime = 0;
+        let currentSequence = "";
+        let processTimeout = null;
+        let spaceTimeout = null;
+
+        // Audio Context setup
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        let oscillator;
+        let gainNode;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+                gainNode = audioCtx.createGain();
+                gainNode.gain.value = 0; // Start muted
+                gainNode.connect(audioCtx.destination);
+
+                oscillator = audioCtx.createOscillator();
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 600; // 600Hz tone
+                oscillator.connect(gainNode);
+                oscillator.start();
+            }
+        }
+
+        function playTone() {
+            if (!audioCtx) initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            gainNode.gain.setTargetAtTime(0.5, audioCtx.currentTime, 0.015);
+            document.getElementById('status-indicator').classList.add('active');
+        }
+
+        function stopTone() {
+            if (gainNode) gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.015);
+            document.getElementById('status-indicator').classList.remove('active');
+        }
+
+        // Telegraph Input Logic
+        function pressDown() {
+            if (isPressed) return;
+            isPressed = true;
+            pressStartTime = Date.now();
+            clearTimeout(processTimeout);
+            clearTimeout(spaceTimeout);
+            playTone();
+        }
+
+        function pressUp() {
+            if (!isPressed) return;
+            isPressed = false;
+            stopTone();
+
+            const duration = Date.now() - pressStartTime;
+            if (duration < DOT_DASH_THRESHOLD) {
+                currentSequence += ".";
+            } else {
+                currentSequence += "-";
+            }
+
+            updateLiveSignal();
+
+            // Set timeouts for auto-processing letters and words
+            processTimeout = setTimeout(processSequence, LETTER_GAP_THRESHOLD);
+            spaceTimeout = setTimeout(insertSpace, WORD_GAP_THRESHOLD);
+        }
+
+        function processSequence() {
+            if (currentSequence === "") return;
+
+            const letter = morseDict[currentSequence];
+            const outputDiv = document.getElementById('decoded-output');
+
+            if (letter) {
+                outputDiv.textContent += letter;
+            } else {
+                outputDiv.textContent += "?"; // Invalid sequence
+            }
+
+            currentSequence = "";
+            updateLiveSignal();
+        }
+
+        function insertSpace() {
+            const outputDiv = document.getElementById('decoded-output');
+            // Only add a space if the last character isn't already a space or empty
+            if (outputDiv.textContent.length > 0 && !outputDiv.textContent.endsWith(" ")) {
+                outputDiv.textContent += " ";
+            }
+        }
+
+        function updateLiveSignal() {
+            document.getElementById('current-signal').textContent = currentSequence;
+        }
+
+        function clearOutput() {
+            document.getElementById('decoded-output').textContent = "";
+            currentSequence = "";
+            updateLiveSignal();
+        }
+
+        // Event Listeners for Spacebar
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault(); // Prevent page scroll
+                pressDown();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                pressUp();
+            }
+        });
+
+        // Event Listeners for the stable Hitbox over the image
+        const hitbox = document.getElementById('knob-hitbox');
+
+        hitbox.addEventListener('mousedown', (e) => {
+            e.preventDefault(); // Prevent dragging the image
+            pressDown();
+        });
+        window.addEventListener('mouseup', pressUp);
+
+        // Mobile touch support
+        hitbox.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            pressDown();
+        });
+        hitbox.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            pressUp();
+        });
+
+    </script>
+</body>
+</html>

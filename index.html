@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission: Decrypt! - Portal Gateway</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --panel-bg: #ffffff;
+            --text-color: #2c3e50;
+            --accent-color: #3f51b5; /* Sophisticated Indigo for Portal Hub */
+            --border-color: #e2e8f0;
+            --panel-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+
+        /* Section Colors */
+        --morse-color: #2e7d32;
+        --caesar-color: #0c6ecf;
+        --rsa-color: #e74c3c;
+        --signature-color: #b536d1;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        box-sizing: border-box;
+    }
+
+    .main-wrapper {
+        width: 100%;
+        max-width: 1000px;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+        align-items: center;
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+
+    h1 {
+        color: var(--accent-color);
+        margin-top: 0;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 1.8rem;
+    }
+
+    .subtitle {
+        font-size: 1.1rem;
+        color: #64748b;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .welcome-card {
+        background-color: var(--panel-bg);
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: var(--panel-shadow);
+        border: 1px solid var(--border-color);
+        width: 100%;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+    .welcome-card p {
+        margin: 0 0 15px 0;
+        line-height: 1.6;
+        font-size: 1.05rem;
+    }
+
+    .welcome-card p:last-child {
+        margin-bottom: 0;
+    }
+
+    .welcome-card a {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: bold;
+        border-bottom: 1.5px solid transparent;
+        transition: border-color 0.2s;
+    }
+
+    .welcome-card a:hover {
+        border-color: var(--accent-color);
+    }
+
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        width: 100%;
+    }
+
+    .panel-card {
+        background-color: var(--panel-bg);
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: var(--panel-shadow);
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-sizing: border-box;
+        height: 250px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .panel-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+        margin-bottom: 12px;
+    }
+
+    .section-num {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #ffffff;
+        padding: 4px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+
+    .card-title {
+        font-size: 1.15rem;
+        font-weight: bold;
+        margin: 0;
+    }
+
+    .card-description {
+        font-size: 0.95rem;
+        color: #64748b;
+        line-height: 1.5;
+        margin: 0;
+        flex-grow: 1;
+    }
+
+    .launch-btn {
+        display: block;
+        text-align: center;
+        text-decoration: none;
+        color: #ffffff;
+        font-weight: bold;
+        text-transform: uppercase;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 0.95rem;
+        transition: opacity 0.2s;
+        margin-top: 15px;
+    }
+
+    .launch-btn:hover {
+        opacity: 0.9;
+    }
+
+    /* Color Schemes per Card */
+    .card-morse { border-top: 4px solid var(--morse-color); }
+    .card-morse .section-num { background-color: var(--morse-color); }
+    .card-morse .card-title { color: var(--morse-color); }
+    .card-morse .launch-btn { background-color: var(--morse-color); }
+
+    .card-caesar { border-top: 4px solid var(--caesar-color); }
+    .card-caesar .section-num { background-color: var(--caesar-color); }
+    .card-caesar .card-title { color: var(--caesar-color); }
+    .card-caesar .launch-btn { background-color: var(--caesar-color); }
+
+    .card-rsa { border-top: 4px solid var(--rsa-color); }
+    .card-rsa .section-num { background-color: var(--rsa-color); }
+    .card-rsa .card-title { color: var(--rsa-color); }
+    .card-rsa .launch-btn { background-color: var(--rsa-color); }
+
+    .card-sig { border-top: 4px solid var(--signature-color); }
+    .card-sig .section-num { background-color: var(--signature-color); }
+    .card-sig .card-title { color: var(--signature-color); }
+    .card-sig .launch-btn { background-color: var(--signature-color); }
+
+    /* Centered signature footer below the grid */
+    .instructor-footer {
+        text-align: center;
+        color: #64748b;
+        font-size: 0.95rem;
+        font-weight: normal;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .grid-container {
+            grid-template-columns: 1fr;
+        }
+        .panel-card {
+            height: auto;
+            min-height: 220px;
+        }
+    }
+</style>
+
+
+</head>
+<body>
+
+
+<div class="main-wrapper">
+    <header>
+        <h1>Mission: Decrypt! A Hands-On Math Adventure</h1>
+        <p class="subtitle">HKBU Summer Programmes for High School Students</p>
+    </header>
+
+
+<!-- Welcome Banner for International Students -->
+<div class="welcome-card">
+    <p><strong>Welcome, Recruits!</strong> Today, you are joining an elite mathematical intelligence agency. Over the next 2 hours, we will explore the evolution of secret communications—from simple clicks of a telegraph to the modern algorithms that secure our internet.</p>
+    <p style="font-size: 0.95rem; color: #64748b; font-style: italic;">
+        Designed for the <a href="https://hs-summer.hkbu.edu.hk/available-programmes/Mission--Decrypt--A-Hands-On-Math-Adventure.html" target="_blank">Mission: Decrypt! Workshop</a>.
+    </p>
+</div>
+
+<!-- Interactive Gateway Grid -->
+<div class="grid-container">
+
+    <!-- Section 1 Card -->
+    <div class="panel-card card-morse">
+        <div>
+            <div class="card-header">
+                <span class="section-num">Sec 1</span>
+                <h2 class="card-title">Telegraph Simulator</h2>
+            </div>
+            <p class="card-description">Learn the fundamentals of mapping signals to data. Tap out Morse Code messages on our interactive transmitter to encrypt your name and home country.</p>
+        </div>
+        <a href="1_morse_code.html" class="launch-btn">Launch Simulator</a>
+    </div>
+
+    <!-- Section 2 Card -->
+    <div class="panel-card card-caesar">
+        <div>
+            <div class="card-header">
+                <span class="section-num">Sec 2</span>
+                <h2 class="card-title">Caesar Cipher Wheel</h2>
+            </div>
+            <p class="card-description">Crack historic military messages. Spin the virtual decoding wheel, analyze shifts, and discover how Modular Arithmetic ("Clock Math") powers early encryptions.</p>
+        </div>
+        <a href="2_caesar_cipher_wheel.html" class="launch-btn">Launch Wheel</a>
+    </div>
+
+    <!-- Section 3 Card -->
+    <div class="panel-card card-rsa">
+        <div>
+            <div class="card-header">
+                <span class="section-num">Sec 3</span>
+                <h2 class="card-title">RSA Encryption</h2>
+            </div>
+            <p class="card-description">Secure our digital borders. Create asymmetric key pairs (Public & Private) to protect secret fruit payloads across public transmission lines.</p>
+        </div>
+        <a href="3_rsa.html" class="launch-btn">Launch RSA Node</a>
+    </div>
+
+    <!-- Section 4 Card -->
+    <div class="panel-card card-sig">
+        <div>
+            <div class="card-header">
+                <span class="section-num">Sec 4</span>
+                <h2 class="card-title">Digital Signature</h2>
+            </div>
+            <p class="card-description">Ensure file integrity. Practice generating unique "Message Hashes" to create digital fingerprints and verify the authenticity of incoming documents.</p>
+        </div>
+        <a href="4_digital_signature.html" class="launch-btn">Launch Terminal</a>
+    </div>
+
+</div>
+
+<!-- Stable centered footer -->
+<div class="instructor-footer">Jing ZHANG, Department of Mathematics, HKBU</div>
+
+
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSA Asymmetric Encryption</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --panel-bg: #ffffff;
+            --text-color: #2c3e50;
+            --accent-color: #e74c3c; /* Vibrant Orange for RSA */
+            --highlight: #ff0000;
+            --active: #ffb300;
+            --border-color: #e2e8f0;
+            --panel-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --secret-color: #c0392b;
+            --open-color: #27ae60;
+            --input-bg: #f8fafc;
+        }
+
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        box-sizing: border-box;
+        font-size: 1rem;
+    }
+
+    h1 {
+        text-align: center;
+        color: var(--accent-color);
+        margin-top: 0;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 1.8rem;
+    }
+
+    .main-wrapper {
+        width: 100%;
+        max-width: 1200px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .container {
+        display: flex;
+        gap: 20px;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .panel {
+        background-color: var(--panel-bg);
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: var(--panel-shadow);
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 300px;
+        box-sizing: border-box;
+    }
+
+    .panel.interactive-panel {
+        min-height: 540px; /* Aligns all simulator panels to matching height */
+    }
+
+    .panel-title {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: var(--accent-color);
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+
+    /* Top Configuration Setup Row */
+    .keys-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        width: 100%;
+    }
+
+    .box {
+        border: 3px solid var(--border-color);
+        border-radius: 8px;
+        padding: 20px;
+        background: var(--input-bg);
+        position: relative;
+        font-size: 0.95rem;
+        display: flex;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .box-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .box p {
+        margin: 0 0 8px 0;
+    }
+
+    .box p:last-child {
+        margin-bottom: 0;
+    }
+
+    .box-secret { border-color: var(--secret-color); }
+    .box-open { border-color: var(--open-color); }
+
+    .instructions {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #64748b;
+        margin: 0 0 15px 0;
+    }
+
+    .box-label {
+        display: block;
+        font-size: 0.95rem;
+        color: #64748b;
+        font-weight: bold;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+    }
+
+    .explanation {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.9rem;
+        color: #64748b;
+        background: #ffffff;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid var(--border-color);
+    }
+
+    .mono {
+        font-family: monospace;
+    }
+
+    /* Actor Column Details */
+    .actor {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        height: 100%;
+    }
+
+    .actor-avatar {
+        font-size: 3.5rem;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+
+    /* Emoji Interactive Selection */
+    .emoji-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .emoji-btn {
+        background: #f1f5f9;
+        border: 2px solid transparent;
+        border-radius: 6px;
+        padding: 10px 2px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 1.3rem;
+        touch-action: manipulation;
+    }
+
+    .emoji-btn:hover {
+        background: #e2e8f0;
+    }
+
+    .emoji-btn.selected {
+        border-color: var(--accent-color);
+        background: #e0f2fe;
+        box-shadow: 0 0 8px rgba(33, 150, 243, 0.2);
+    }
+
+    .emoji-btn span.num {
+        font-size: 0.9rem;
+        color: var(--text-color);
+        margin-top: 4px;
+    }
+
+    /* Input Controls Setup */
+    .input-group {
+        margin: 12px 0;
+        text-align: left;
+    }
+
+    .input-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        background: var(--input-bg);
+        color: var(--text-color);
+        box-sizing: border-box;
+        font-family: monospace;
+        font-size: 1.1rem;
+        font-weight: bold;
+        transition: border-color 0.2s;
+    }
+
+    .input-group input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+    }
+
+    /* Action Buttons */
+    button.action-btn {
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        transition: background-color 0.2s, transform 0.1s;
+        width: 100%;
+        margin-top: 10px;
+        touch-action: manipulation;
+    }
+
+    button.action-btn-encrypt {
+        background-color: var(--open-color);
+    }
+
+    button.action-btn-encrypt:hover {
+        background-color: #2ecc71;
+    }
+
+    button.action-btn-decrypt {
+        background-color: var(--secret-color);
+    }
+
+    button.action-btn-decrypt:hover {
+        background-color: #e74c3c;
+    }
+
+    button.action-btn:active {
+        transform: scale(0.98);
+    }
+
+    /* Channel Interface Details */
+    .channel-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        text-align: center;
+    }
+
+    .arrow {
+        font-size: 2.5rem;
+        color: var(--accent-color);
+        margin: 5px 0;
+    }
+
+    .math-box {
+        background: var(--input-bg);
+        border-left: 4px solid var(--accent-color);
+        padding: 12px;
+        border-radius: 0 6px 6px 0;
+        margin: 12px 0;
+        text-align: left;
+        font-size: 0.95rem;
+        width: 100%;
+        box-sizing: border-box;
+        overflow-x: auto;
+    }
+
+    .math-box.step-box {
+        background: #ffffff;
+        border: 1px dashed var(--border-color);
+        border-left: 4px solid var(--active);
+        color: #64748b;
+    }
+
+    /* Receiver Output Frame */
+    .result-display {
+        margin-top: 15px;
+        padding: 15px;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        min-height: 110px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .output-label {
+        font-size: 0.95rem;
+        color: #64748b;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .output-text {
+        margin-top: 5px;
+        color: #64748b;
+        font-size: 0.95rem;
+    }
+
+    .output-formula {
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .status-message {
+        font-size: 0.9rem;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 8px;
+    }
+
+    .status-message.success {
+        color: #2e7d32;
+    }
+
+    .status-message.error {
+        color: var(--secret-color);
+    }
+
+    .ciphertext-highlight {
+        color: var(--secret-color);
+        font-weight: bold;
+    }
+
+    .decrypted-emoji {
+        font-size: 2.8rem;
+        text-align: center;
+        margin-top: 8px;
+    }
+
+    /* Stable Instructor Footer */
+    .instructor-footer {
+        text-align: center;
+        color: #64748b;
+        font-size: 0.95rem;
+        font-weight: normal;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    @media (max-width: 900px) {
+        .container {
+            flex-direction: column;
+        }
+        .panel.interactive-panel {
+            width: 100%;
+            height: auto;
+            min-height: auto;
+        }
+        .box {
+            flex-direction: column;
+        }
+    }
+</style>
+
+
+</head>
+<body>
+
+
+<h1>Mission: Decrypt! A Hands-On Math Adventure</h1>
+<h1>RSA Asymmetric Encryption</h1>
+
+<div class="main-wrapper">
+    
+    <!-- SECTION 1: Secret & Public Key Panels -->
+    <div class="container">
+        <div class="panel">
+            <div class="panel-title">Secret | Private Key | Decryption</div>
+            <div class="box box-secret">
+                <div class="box-content">
+                    <p><strong>Prime p:</strong> 11 &nbsp;&nbsp;&nbsp;&nbsp; <strong>Prime q:</strong> 3</p>
+                    <p><strong>&phi;(n):</strong> (11 - 1) &times; (3 - 1) = 20</p>
+                    <p><strong>Private Key (d):</strong> 7</p>
+                </div>
+                <div class="explanation">
+                    <strong>Rule:</strong> Find an integer <em>d</em> such that <br> (<em>d</em> &times; <em>e</em>) &divide; &phi;(n) leaves a remainder of exactly 1.
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Open | Public Key | Encryption</div>
+            <div class="box box-open">
+                <div class="box-content">
+                    <p><strong>Modulo n:</strong> p &times; q = 33</p>
+                    <p><strong>Public Key (e):</strong> 3</p>
+                </div>
+                <div class="explanation">
+                    <strong>Rule:</strong> Choose an exponent <em>e</em> that is larger than 1 and shares no common divisors with <br> &phi;(n) = 20.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: Interactive Cryptographic Canvas -->
+    <div class="container">
+        
+        <!-- ALICE: SENDER -->
+        <div class="panel interactive-panel">
+            <div class="panel-title">Sender (Alice)</div>
+            <div class="actor">
+                <div class="actor-avatar">👩‍💻</div>
+                <!-- <div class="actor-name">Alice</div> -->
+                <p class="instructions">Choose a secret cargo (value m &lt; n):</p>
+                
+                <div class="emoji-grid">
+                    <button type="button" class="emoji-btn" onclick="selectEmoji(2, '🍎', event)">
+                        <span>🍎</span><span class="num">2</span>
+                    </button>
+                    <button type="button" class="emoji-btn" onclick="selectEmoji(5, '🍌', event)">
+                        <span>🍌</span><span class="num">5</span>
+                    </button>
+                    <button type="button" class="emoji-btn" onclick="selectEmoji(10, '🍇', event)">
+                        <span>🍇</span><span class="num">10</span>
+                    </button>
+                    <button type="button" class="emoji-btn" onclick="selectEmoji(20, '🍉', event)">
+                        <span>🍉</span><span class="num">20</span>
+                    </button>
+                    <button type="button" class="emoji-btn" onclick="selectEmoji(25, '🍓', event)">
+                        <span>🍓</span><span class="num">25</span>
+                    </button>
+                </div>
+
+                <div class="input-group">
+                    <label class="box-label">Receiver's Public Key (e):</label>
+                    <input type="number" id="publicKeyE" value="3" oninput="updateCalculations()">
+                </div>
+                
+                <button type="button" class="action-btn action-btn-encrypt" onclick="encryptMessage()">1. Encrypt & Send</button>
+            </div>
+        </div>
+
+        <!-- PUBLIC ROUTING CHANNEL -->
+        <div class="panel interactive-panel" style="background-color: #f8fafc;">
+            <div class="panel-title">Public Transmission Channel</div>
+            <div class="channel-container">
+                <div class="math-box">
+                    <strong>Encryption Formula:</strong><br>
+                    <span class="mono">c = m<sup>e</sup> mod n</span>
+                </div>
+                <div class="math-box step-box" id="encryptionStep">
+                    Pick a fruit value, then click Encrypt to transmit securely.
+                </div>
+                <div class="arrow">➡</div>
+            </div>
+        </div>
+
+        <!-- BOB: RECEIVER -->
+        <div class="panel interactive-panel">
+            <div class="panel-title">Receiver (Bob)</div>
+            <div class="actor">
+                <div class="actor-avatar">👨‍💻</div>
+                <!-- <div class="actor-name">Bob</div> -->
+                
+                <div class="input-group">
+                    <label class="box-label">Receiver's Private Key (d):</label>
+                    <input type="number" id="privateKeyD" value="7">
+                </div>
+
+                <button type="button" class="action-btn action-btn-decrypt" onclick="decryptMessage()">2. Decrypt Ciphertext</button>
+                
+                <div class="result-display" id="decryptionResult">
+                    <div class="output-label">Decryption Output:</div>
+                    <div id="outputContainer" class="output-text">No ciphertext received yet...</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Instructor Signature -->
+    <div class="instructor-footer">Jing ZHANG, Department of Mathematics, HKBU</div>
+</div>
+
+<script>
+    const n = 33; 
+    const fruits = {
+        2: '🍎',
+        5: '🍌',
+        10: '🍇',
+        20: '🍉',
+        25: '🍓'
+    };
+
+    let selectedM = null;
+    let selectedEmojiChar = '';
+    let globalCiphertext = null;
+
+    function selectEmoji(mValue, emojiStr, event) {
+        selectedM = mValue;
+        selectedEmojiChar = emojiStr;
+        
+        document.querySelectorAll('.emoji-btn').forEach(btn => btn.classList.remove('selected'));
+        event.currentTarget.classList.add('selected');
+        
+        updateCalculations();
+    }
+
+    function powerMod(base, exp, mod) {
+        if (mod === 1) return 0;
+        let result = 1;
+        base = base % mod;
+        while (exp > 0) {
+            if (exp % 2 === 1) {
+                result = (result * base) % mod;
+            }
+            exp = Math.floor(exp / 2);
+            base = (base * base) % mod;
+        }
+        return result;
+    }
+
+    function updateCalculations() {
+        if (selectedM === null) return;
+        const e = parseInt(document.getElementById('publicKeyE').value) || 0;
+        document.getElementById('encryptionStep').innerHTML = `Selected: m = ${selectedM} (${selectedEmojiChar})<br><span class="mono">Formula: ${selectedM}<sup>${e}</sup> mod ${n}</span>`;
+    }
+
+    function encryptMessage() {
+        if (selectedM === null) {
+            alert("Please select one of Alice's fruit values first!");
+            return;
+        }
+
+        const e = parseInt(document.getElementById('publicKeyE').value);
+        if (isNaN(e) || e < 1) {
+            alert("Please enter a valid Public Key (e).");
+            return;
+        }
+
+        globalCiphertext = powerMod(selectedM, e, n);
+
+        document.getElementById('encryptionStep').innerHTML = `
+            <strong>In Transit:</strong><br>
+            m = ${selectedM} (${selectedEmojiChar})<br>
+            <span class="mono">c = ${selectedM}<sup>${e}</sup> mod ${n}</span><br>
+            <span class="ciphertext-highlight">Ciphertext (c) = ${globalCiphertext}</span>
+        `;
+        
+        document.getElementById('outputContainer').innerHTML = `Ciphertext (c = ${globalCiphertext}) arrived safely at Bob's node. Click Decrypt to extract!`;
+        document.getElementById('decryptionResult').style.backgroundColor = "#fffbeb"; 
+        document.getElementById('decryptionResult').style.borderColor = "#fef3c7"; 
+    }
+
+    function decryptMessage() {
+        if (globalCiphertext === null) {
+            alert("The transmission channel is currently empty! Click Encrypt & Send on Alice's panel.");
+            return;
+        }
+
+        const d = parseInt(document.getElementById('privateKeyD').value);
+        if (isNaN(d) || d < 1) {
+            alert("Please enter a valid Private Key (d).");
+            return;
+        }
+
+        const decryptedM = powerMod(globalCiphertext, d, n);
+        
+        let outputHTML = `
+            <div class="output-formula">
+                Formula: ${globalCiphertext}<sup>${d}</sup> mod ${n}<br>
+                Decrypted m = ${decryptedM}
+            </div>
+        `;
+
+        if (fruits[decryptedM]) {
+            outputHTML += `
+                <div class="decrypted-emoji">${fruits[decryptedM]}</div>
+                <div class="status-message success">✔ Match Found! Successful Decryption.</div>
+            `;
+            document.getElementById('decryptionResult').style.backgroundColor = "#f0fdf4";
+            document.getElementById('decryptionResult').style.borderColor = "#bbf7d0";
+        } else {
+            outputHTML += `
+                <div class="status-message error">✘ No Match Found. Invalid Key!</div>
+            `;
+            document.getElementById('decryptionResult').style.backgroundColor = "#fef2f2";
+            document.getElementById('decryptionResult').style.borderColor = "#fecaca";
+        }
+
+        document.getElementById('outputContainer').innerHTML = outputHTML;
+    }
+</script>
+
+
+</body>
+</html>

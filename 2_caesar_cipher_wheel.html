@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caesar Cipher Wheel</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --panel-bg: #ffffff;
+            --text-color: #2c3e50;
+            --accent-color: #0c6ecf; /* Deep Cyber Cyan/Teal for contrast and headings */
+            --highlight: #00bcd4;    /* Bright Cyber Cyan */
+            --active: #ff9800;       /* Warning Alert Amber/Orange */
+            --border-color: #e2e8f0;  /* Soft light borders */
+            --panel-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --input-bg: #f8fafc;     /* Clean light background for text boxes */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.8rem;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--panel-shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 300px;
+            height: 580px; 
+            box-sizing: border-box;
+        }
+
+        .panel-title {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        /* LEFT PANEL: Interactive Decryption Wheel */
+        .panel.left {
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Shift Controls */
+        .shift-control-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .shift-label {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .shift-btn {
+            background-color: #f1f5f9;
+            color: var(--text-color);
+            border: 2px solid var(--accent-color);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .shift-btn:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .shift-btn:active {
+            transform: scale(0.9);
+        }
+
+        .shift-input {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--accent-color);
+            font-size: 1.3rem;
+            width: 60px;
+            text-align: center;
+            border-radius: 5px;
+            padding: 5px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        /* SVG Wheel Styles */
+        .wheel-container {
+            position: relative;
+            width: 100%;
+            max-width: 340px;
+            height: 340px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: none; /* Prevents mobile scroll when dragging */
+            user-select: none;
+        }
+
+        #cipher-wheel {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        #cipher-wheel:active {
+            cursor: grabbing;
+        }
+
+        /* Wheel Text Styling */
+        .wheel-text {
+            font-family: 'Segoe UI', Monaco, monospace;
+            font-size: 14px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .outer-text {
+            fill: var(--text-color);
+        }
+
+        .inner-text {
+            fill: var(--accent-color);
+        }
+
+        /* RIGHT PANEL: Encryption/Decryption Sandbox */
+        .panel.right {
+            justify-content: space-between;
+        }
+
+        .text-area-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .box-label {
+            font-size: 0.95rem;
+            color: #64748b;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .interactive-textbox {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 12px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            resize: none;
+            flex: 1;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .interactive-textbox:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        /* Control Button Section in Middle */
+        .action-divider {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        /* Inactive style by default for both buttons */
+        .cipher-action-btn {
+            background-color: #f1f5f9;
+            color: var(--accent-color);
+            border: 2px solid var(--accent-color);
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            transition: background-color 0.1s, transform 0.1s, color 0.1s;
+            touch-action: manipulation;
+        }
+
+        .cipher-action-btn:hover {
+            background-color: rgba(0, 122, 135, 0.08);
+        }
+
+        /* Active highlight style triggered ONLY when the user physically presses/clicks the button */
+        .cipher-action-btn:active {
+            background-color: var(--accent-color);
+            color: #ffffff;
+            transform: scale(0.97);
+        }
+
+        .clear-btn {
+            background-color: var(--accent-color);
+            color: #ffffff;
+            border: none;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: background-color 0.2s;
+            touch-action: manipulation;
+        }
+
+        .clear-btn:hover {
+            background-color: var(--highlight);
+        }
+
+        /* Centered signature footer below the panels */
+        .instructor-footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.95rem;
+            font-weight: normal;
+            width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            .panel {
+                width: 100%;
+                height: auto;
+                min-height: 520px;
+            }
+            .wheel-container {
+                max-width: 300px;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Mission: Decrypt! A Hands-On Math Adventure</h1>
+    <h1>Caesar Cipher Wheel</h1>
+
+    <div class="main-wrapper">
+        <div class="container">
+
+            <!-- LEFT PANEL: Interactive Decryption Wheel -->
+            <div class="panel left">
+                <div class="panel-title">Caesar Decryption Wheel</div>
+
+                <!-- Shift controls above the wheel -->
+                <div class="shift-control-container">
+                    <button type="button" class="shift-btn" onpointerdown="adjustShiftEvent(event, -1)" onclick="adjustShiftEvent(event, -1)">-</button>
+                    <span class="shift-label">Shift Key (k):</span>
+                    <input type="number" id="shift-input" class="shift-input" min="0" max="25" value="0" oninput="onShiftInputChange(this.value)">
+                    <button type="button" class="shift-btn" onpointerdown="adjustShiftEvent(event, 1)" onclick="adjustShiftEvent(event, 1)">+</button>
+                </div>
+
+                <!-- Interactive Wheel SVG -->
+                <div class="wheel-container">
+                    <svg id="cipher-wheel" viewBox="0 0 300 300">
+                        <!-- Definitions for arrows or guides -->
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#ff9800"/>
+                            </marker>
+                        </defs>
+
+                        <!-- Background glow and board circles (Adjusted for Light Mode) -->
+                        <circle cx="150" cy="150" r="145" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+                        <circle cx="150" cy="150" r="115" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+
+                        <!-- Outer Letter Ring (Fixed Plaintext - Dark Slate) -->
+                        <g id="outer-ring">
+                            <!-- Letters A-Z populated via JS -->
+                        </g>
+
+                        <!-- Inner Rotatable Ring Group (Ciphertext - Cyber Cyan / Deep Teal text) -->
+                        <g id="inner-ring-group" transform="rotate(0, 150, 150)">
+                            <circle cx="150" cy="150" r="85" fill="#f0fafd" stroke="var(--accent-color)" stroke-width="2"/>
+                            <circle cx="150" cy="150" r="55" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+                            <!-- Inner Letters populated via JS -->
+                            <g id="inner-letters">
+                                <!-- Letters A-Z populated via JS -->
+                            </g>
+                        </g>
+
+                        <!-- Center Cap -->
+                        <circle cx="150" cy="150" r="22" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" />
+                        <circle cx="150" cy="150" r="6" fill="var(--highlight)" />
+
+                        <!-- Top Index Alignment Arrow (12 o'clock helper) aligned according to custom layout -->
+                        <line x1="150" y1="30" x2="150" y2="58" stroke="#ff9800" stroke-width="3" marker-end="url(#arrow)" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Decryption/Encryption Sandbox -->
+            <div class="panel right">
+                <div class="panel-title">Decryption Terminal</div>
+
+                <!-- Plaintext Input Area -->
+                <div class="text-area-container">
+                    <div class="box-label">Plain Text (Original message)</div>
+                    <textarea id="plaintext-box" class="interactive-textbox" placeholder="Type secret message here..."></textarea>
+                </div>
+
+                <!-- Action Button Center Row -->
+                <div class="action-divider">
+                    <button type="button" class="cipher-action-btn" onpointerdown="manualEncrypt(event)" onclick="manualEncrypt(event)">
+                        Encrypt <span>↓</span>
+                    </button>
+                    <button type="button" class="cipher-action-btn" onpointerdown="manualDecrypt(event)" onclick="manualDecrypt(event)">
+                        Decrypt <span>↑</span>
+                    </button>
+                </div>
+
+                <!-- Ciphertext Input Area -->
+                <div class="text-area-container">
+                    <div class="box-label">Cipher Text (Encrypted message)</div>
+                    <textarea id="ciphertext-box" class="interactive-textbox" placeholder="Type scrambled code here..."></textarea>
+                </div>
+
+                <!-- Clear All Button -->
+                <button type="button" class="clear-btn" onpointerdown="clearAllText(event)" onclick="clearAllText(event)">Clear All Text</button>
+
+            </div>
+        </div>
+
+        <!-- Consistent centralized department footer -->
+        <div class="instructor-footer">Jing ZHANG, Department of Mathematics, HKBU</div>
+    </div>
+
+    <script>
+        const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const totalLetters = 26;
+        const angleStep = 360 / totalLetters;
+
+        const outerRing = document.getElementById('outer-ring');
+        const innerLettersGroup = document.getElementById('inner-letters');
+        const innerRingGroup = document.getElementById('inner-ring-group');
+        const shiftInput = document.getElementById('shift-input');
+        const plaintextBox = document.getElementById('plaintext-box');
+        const ciphertextBox = document.getElementById('ciphertext-box');
+
+        let currentShift = 0;
+        let isDragging = false;
+        let startAngle = 0;
+        let currentWheelRotation = 0;
+
+        // Initialize Wheel Letter elements programmatically
+        function createWheelLetters() {
+            for (let i = 0; i < totalLetters; i++) {
+                const char = ALPHABET[i];
+                // Subtract 90 degrees so 'A' lands perfectly at 12 o'clock (the top pointer)
+                const angleDegree = (i * angleStep) - 90; 
+                const angleRad = (angleDegree * Math.PI) / 180;
+
+                // Position Outer Letters (Plaintext)
+                const outerR = 130;
+                const ox = 150 + outerR * Math.cos(angleRad);
+                const oy = 150 + outerR * Math.sin(angleRad);
+                const outerText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                outerText.setAttribute("x", ox);
+                outerText.setAttribute("y", oy);
+                outerText.setAttribute("class", "wheel-text outer-text");
+                outerText.setAttribute("transform", `rotate(${angleDegree + 90}, ${ox}, ${oy})`);
+                outerText.textContent = char;
+                outerRing.appendChild(outerText);
+
+                // Position Inner Letters (Ciphertext)
+                const innerR = 70;
+                const ix = 150 + innerR * Math.cos(angleRad);
+                const iy = 150 + innerR * Math.sin(angleRad);
+                const innerText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                innerText.setAttribute("x", ix);
+                innerText.setAttribute("y", iy);
+                innerText.setAttribute("class", "wheel-text inner-text");
+                innerText.setAttribute("transform", `rotate(${angleDegree + 90}, ${ix}, ${iy})`);
+                innerText.textContent = char;
+                innerLettersGroup.appendChild(innerText);
+            }
+        }
+
+        // Apply Shift rotation updates visually to SVG Wheel
+        function updateWheelVisuals(shift) {
+            // Standard Caesar: Moving shift forward by S means the cipher wheel
+            // is rotated counterclockwise so that outer A aligns with inner letter corresponding to Shift.
+            const targetRotation = -shift * angleStep;
+            innerRingGroup.setAttribute("transform", `rotate(${targetRotation}, 150, 150)`);
+            currentWheelRotation = targetRotation;
+        }
+
+        // Set Shift globally and sync UI systems
+        function setShift(shift, updateInput = true, updateWheel = true) {
+            currentShift = (shift % totalLetters + totalLetters) % totalLetters;
+
+            if (updateInput) {
+                shiftInput.value = currentShift;
+            }
+            if (updateWheel) {
+                updateWheelVisuals(currentShift);
+            }
+        }
+
+        function adjustShift(delta) {
+            setShift(currentShift + delta);
+        }
+
+        // Fast-response event handler for Shift Adjust buttons on touch devices
+        let lastShiftTime = 0;
+        function adjustShiftEvent(event, delta) {
+            if (event && event.type === 'pointerdown') {
+                event.preventDefault();
+            }
+            const now = Date.now();
+            if (now - lastShiftTime < 100) return;
+            lastShiftTime = now;
+
+            adjustShift(delta);
+        }
+
+        function onShiftInputChange(val) {
+            let parsed = parseInt(val, 10);
+            if (isNaN(parsed)) parsed = 0;
+            setShift(parsed);
+        }
+
+        // Caesar Cryptography Mathematical Engine
+        function cipherText(text, shift, decrypt = false) {
+            const actualShift = decrypt ? (totalLetters - shift) % totalLetters : shift;
+            return text.split('').map(char => {
+                const upperChar = char.toUpperCase();
+                const idx = ALPHABET.indexOf(upperChar);
+                if (idx === -1) return char; // Skip spaces and punctuations intact
+
+                const cipherIdx = (idx + actualShift) % totalLetters;
+                const cipherChar = ALPHABET[cipherIdx];
+                return char === upperChar ? cipherChar : cipherChar.toLowerCase();
+            }).join('');
+        }
+
+        // Manual Execution on Button Click with touch-screen optimization
+        let lastEncryptTime = 0;
+        function manualEncrypt(event) {
+            if (event && event.type === 'pointerdown') {
+                event.preventDefault();
+            }
+            const now = Date.now();
+            if (now - lastEncryptTime < 100) return;
+            lastEncryptTime = now;
+
+            const plain = plaintextBox.value;
+            ciphertextBox.value = cipherText(plain, currentShift, false);
+        }
+
+        let lastDecryptTime = 0;
+        function manualDecrypt(event) {
+            if (event && event.type === 'pointerdown') {
+                event.preventDefault();
+            }
+            const now = Date.now();
+            if (now - lastDecryptTime < 100) return;
+            lastDecryptTime = now;
+
+            const cipher = ciphertextBox.value;
+            plaintextBox.value = cipherText(cipher, currentShift, true);
+        }
+
+        // Clear both text boxes instantly, restore placeholders, and force blur to dismiss keyboard
+        let lastClearTime = 0;
+        function clearAllText(event) {
+            if (event && event.type === 'pointerdown') {
+                event.preventDefault(); // Prevents click event swallow on mobile Safari
+            }
+            const now = Date.now();
+            if (now - lastClearTime < 100) return;
+            lastClearTime = now;
+
+            plaintextBox.value = "";
+            ciphertextBox.value = "";
+            plaintextBox.placeholder = "Type secret message here...";
+            ciphertextBox.placeholder = "Type scrambled code here...";
+            
+            // Explicitly blur both boxes to remove focus and force placeholders to display instantly
+            plaintextBox.blur();
+            ciphertextBox.blur();
+        }
+
+        // Drag-To-Rotate Mathematical Handlers
+        const svgElement = document.getElementById('cipher-wheel');
+
+        function getMouseAngle(event) {
+            const rect = svgElement.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+            const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+
+            const dx = clientX - centerX;
+            const dy = clientY - centerY;
+
+            // Returns degrees: -180 to 180
+            return Math.atan2(dy, dx) * 180 / Math.PI;
+        }
+
+        function startDrag(e) {
+            e.preventDefault();
+            isDragging = true;
+            const initialAngle = getMouseAngle(e);
+            startAngle = initialAngle - currentWheelRotation;
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const currentAngle = getMouseAngle(e);
+            let dragRotation = currentAngle - startAngle;
+
+            // Keep rotation wrapped within standard circle scope
+            dragRotation = (dragRotation % 360 + 360) % 360;
+
+            innerRingGroup.setAttribute("transform", `rotate(${dragRotation}, 150, 150)`);
+            currentWheelRotation = dragRotation;
+
+            // Compute math shift directly from raw rotation mapping
+            const calculatedShift = Math.round(-dragRotation / angleStep);
+            const normalizedShift = (calculatedShift % totalLetters + totalLetters) % totalLetters;
+
+            setShift(normalizedShift, true, false);
+        }
+
+        function stopDrag(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            // Perfect snap to the nearest exact step interval on release
+            setShift(currentShift, true, true);
+        }
+
+        // Add both Pointer and Touch Event Listeners for seamless mobile compliance
+        svgElement.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', drag);
+        window.addEventListener('mouseup', stopDrag);
+
+        svgElement.addEventListener('touchstart', startDrag, { passive: false });
+        window.addEventListener('touchmove', drag, { passive: false });
+        window.addEventListener('touchend', stopDrag);
+
+        // Initial launch configuration
+        createWheelLetters();
+        setShift(0);
+    </script>
+</body>
+</html>
